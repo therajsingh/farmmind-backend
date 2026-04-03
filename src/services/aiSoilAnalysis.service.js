@@ -71,7 +71,7 @@ No explanations outside JSON.
   // return JSON.parse(response.choices[0].message.content);
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash-8b"
+  model: "gemini-3-flash-preview"
 });
 
 const result = await model.generateContent(prompt);
