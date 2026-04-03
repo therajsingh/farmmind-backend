@@ -1,8 +1,12 @@
-const OpenAI = require("openai");
+// const OpenAI = require("openai");
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// const client = new OpenAI({
+//   apiKey: process.env.OPENAI_API_KEY,
+// });
+
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const analyzeSoilWithAI = async (sensorData) => {
   const prompt = `
@@ -58,13 +62,23 @@ No explanations outside JSON.
 `;
 
 
-  const response = await client.chat.completions.create({
-    model: "gpt-4.1-mini",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.1,
-  });
+  // const response = await client.chat.completions.create({
+  //   model: "gpt-4.1-mini",
+  //   messages: [{ role: "user", content: prompt }],
+  //   temperature: 0.1,
+  // });
 
-  return JSON.parse(response.choices[0].message.content);
+  // return JSON.parse(response.choices[0].message.content);
+
+  const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash"
+});
+
+const result = await model.generateContent(prompt);
+
+const text = result.response.text();
+
+return JSON.parse(text);
 };
 
 module.exports = analyzeSoilWithAI;
