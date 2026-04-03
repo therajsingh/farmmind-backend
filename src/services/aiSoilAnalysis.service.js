@@ -70,15 +70,32 @@ No explanations outside JSON.
 
   // return JSON.parse(response.choices[0].message.content);
 
-  const model = genAI.getGenerativeModel({
+const model = genAI.getGenerativeModel({
   model: "gemini-1.5-flash"
 });
 
 const result = await model.generateContent(prompt);
 
-const text = result.response.text();
+let text = result.response.text();
 
-return JSON.parse(text);
+// remove markdown formatting if present
+text = text.replace(/```json/g, "")
+           .replace(/```/g, "")
+           .trim();
+
+// convert to JSON safely
+try {
+  return JSON.parse(text);
+} catch (error) {
+
+  console.log("AI raw response:", text);
+
+  return {
+    healthStatus: "Moderate",
+    issues: ["AI response format issue"],
+    recommendations: [text]
+  };
+}
 };
 
 module.exports = analyzeSoilWithAI;
