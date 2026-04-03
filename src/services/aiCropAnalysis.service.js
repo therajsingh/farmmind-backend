@@ -1,8 +1,12 @@
-const OpenAI = require("openai");
+// const OpenAI = require("openai");
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// const client = new OpenAI({
+//   apiKey: process.env.OPENAI_API_KEY,
+// });
+
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const analyzeCropSuitabilityWithAI = async (sensorData, crop) => {
   const prompt = `
@@ -50,13 +54,39 @@ Rules:
 - No explanations outside JSON
 `;
 
-  const response = await client.chat.completions.create({
-    model: "gpt-4.1-mini",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.1,
+  // const response = await client.chat.completions.create({
+  //   model: "gpt-4.1-mini",
+  //   messages: [{ role: "user", content: prompt }],
+  //   temperature: 0.1,
+  // });
+
+  // return JSON.parse(response.choices[0].message.content);
+  const model = genAI.getGenerativeModel({
+    model: "gemini-3-flash-preview",
   });
 
-  return JSON.parse(response.choices[0].message.content);
+  const result = await model.generateContent(prompt);
+
+  let text = result.response.text();
+
+  // remove markdown formatting if present
+  text = text
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
+
+  // convert to JSON safely
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.log("AI raw response:", text);
+
+    return {
+      healthStatus: "Moderate",
+      issues: ["AI response format issue"],
+      recommendations: [text],
+    };
+  }
 };
 
 module.exports = analyzeCropSuitabilityWithAI;
